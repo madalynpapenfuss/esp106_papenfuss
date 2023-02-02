@@ -29,14 +29,15 @@ setwd("C:/Users/maddi/OneDrive/Desktop/R files/week four")
 list.files(full.names=TRUE)
 ```
 
-# 2a. Use a for-loop (INSTEAD WE ARE USING APPLY FUNCTION) to read in the csv files and bind them together into a single data frame. Add a column to the data frame giving the name of the city the data is from.
+# 2a. Use a for-loop to read in the csv files and bind them together into a single data frame. Add a column to the data frame giving the name of the city the data is from.
 
 ```{r}
+# USING LAPPY FUNCTION
 files <- list.files(pattern = "\\.csv")
 tables <- lapply(files, read.csv)
 tables <- lapply(files, function(f) cbind(file=gsub(".csv$", "", f), read.csv(f)))
 cities <- c("BOS", "NY", "BALT", "CHAR", "MIA", "CC")
-
+# USING FOR-LOOP  
 for (i in 1:length(cities)) {
   tables[[i]]$City <- cities[i]
 }
@@ -60,22 +61,15 @@ sum(is.na(combined$HWI))
 combined$HWI
 
 ```
-Hint: you can use list.files() to get a vector of all the file names in a directory. Setting full.names=TRUE in the list.files() function will give you the full path name that can be used by read.csv (check) 
-
-Hint 2: you might want to create a data frame using the first csv file. Then loop through from files 2 to 6 reading in the csv file and using rbind() to attach it to the bottom of your full data frame (check)
-
-Hint 3: It will be easiest to add the names of the city to the data frames immediately after reading them in, before binding everything together into a single data-frame (check)
-
-### 2b. Take a look at your data frame - is this in a tidy format? --> 
-
+### 2b. Take a look at your data frame - is this in a tidy format?
 
 We are going to examine the question of whether these gauges show evidence of rising sea levels. One of the first things we have to deal with is the issue of dates.
 
 Your data frame right now has one column with a year and one with the month. We are going to combine these into a single column, and use as.Date to formally use Date objects
 
-3a. Create a new column named "Date" that has the first day of the month for that row in the format YYYY-MM-01 where YYYY is the data in the Year column and MM is the data in the Month column
+# 3a. Create a new column named "Date" that has the first day of the month for that row in the format YYYY-MM-01 where YYYY is the data in the Year column and MM is the data in the Month column
 
-3b. Use as.Date (USED lubridate::make_date) to convert your new date column to a date object in R
+# 3b. Use as.Date (INSTEAD USED lubridate::make_date) to convert your new date column to a date object in R
 
 ```{r}
 combined$Date <- lubridate::make_date(year=combined$Year, month=combined$Month)
@@ -83,10 +77,7 @@ combined$Year <- NULL
 combined$Month <- NULL
 head(combined)
 ```
-
-Now lets use ggplot to make some cool graphs of this data using ggplot.
-
-4. Make a plot showing data from all 6 gauges on the same plot. Use different colors to distinguish lines for the different cities. See the example plot uploaded to Canvas (Plot 1)
+# 4. Make a plot showing data from all 6 gauges on the same plot. Use different colors to distinguish lines for the different cities. See the example plot uploaded to Canvas (Plot 1)
 
 
  * Plot the date on the x axis and MHHW (mean higher high water - i.e. the average daily high water level) on the y axis
@@ -100,7 +91,7 @@ ggplot(combined, aes(x=Date, y=MHHW, group=City)) +
   scale_color_manual(values = c("#4a6bc7", "#e43b75", "#e4c13b", "#0d400c", "#d5a0f9", "#7ed0c8")) + geom_smooth(method=lm, se=FALSE, col='black', linetype='dashed', linewidth=0.9, inherit.aes=FALSE, aes(x=Date, y=MHHW)) + theme_bw()
 ```
 
-5. Now make a slightly different plot with the same x and y variables, but use facet_wrap() to make a subplot separately for each city. Add a best-fit line for each subplot. See the example plot uploaded to Canvas (Plot 2)
+# 5. Now make a slightly different plot with the same x and y variables, but use facet_wrap() to make a subplot separately for each city. Add a best-fit line for each subplot. See the example plot uploaded to Canvas (Plot 2)
 
 ```{r, message=FALSE}
 #Hint: you should only need minor modification of the code from question 4 to make this plot
@@ -115,7 +106,7 @@ ggplot(combined, aes(x=Date, y=MHHW, group=City)) +
 
 In this part of the lab we will identify some outliers, and practice running regressions
 
-6. Make a box plot showing the distribution of the highest tides each month ("Highest" column in the NOAA data) . (Ideally practice using ggplot by using geom_boxplot() - put the city on the x axis and Highest on the y. But this can also be done in base R). See the example plot on Canvas (Plot 3)
+# 6. Make a box plot showing the distribution of the highest tides each month ("Highest" column in the NOAA data) . (Ideally practice using ggplot by using geom_boxplot() - put the city on the x axis and Highest on the y. But this can also be done in base R). See the example plot on Canvas (Plot 3)
 
 ```{r}
 ggplot(combined, aes(x=Date, y=Highest, group=City)) + 
@@ -126,7 +117,7 @@ ggplot(combined, aes(x=Date, y=Highest, group=City)) +
 
 Notice the very extreme value in New York City - a major outlier both within New York and compared to all the other cities
 
-7a. Find the row in the data corresponding to this outlier observation 
+# 7a. Find the row in the data corresponding to this outlier observation 
 
 ```{r}
 #Hint: The which.max() function might be useful here
@@ -135,7 +126,7 @@ which.max(combined$Highest)
 
 ```
 
-7b. What month and year did this outlier event occur in? What meteorological event happened in New York in that month that probably caused this outlier event? (Feel free to use Google - I don't expect you to know this off hand)
+# 7b. What month and year did this outlier event occur in? What meteorological event happened in New York in that month that probably caused this outlier event? (Feel free to use Google - I don't expect you to know this off hand)
 
 ```{r} 
 combined$Highest[141,] 
@@ -146,7 +137,7 @@ combined[141,]
 
 Finally, we will fit a linear model to estimate the rate of sea-level rise across these 6 cities.
 
-8a. Fit a linear regression with the mean higher high water (MHHW) as the dependent variable and date (i.e. time) as the independent variable.
+# 8a. Fit a linear regression with the mean higher high water (MHHW) as the dependent variable and date (i.e. time) as the independent variable.
 
 ```{r}
 #Hint: the forumla in your lm() function is of the form y~x where y here is MHHW and x is your date column
@@ -157,7 +148,7 @@ summary(model)$coefficients
 summary(model)$r.squared
 ```
 
-8b. Give the estimated coefficient of the date column. Is it statistically significant (i.e. has a p-value less than 0.05)?
+# 8b. Give the estimated coefficient of the date column. Is it statistically significant (i.e. has a p-value less than 0.05)?
 ```{r}
 model <- lm(MHHW~Date,data=combined)
 summary(m)$coefficients
@@ -171,9 +162,9 @@ ggplot(combined, aes(x=Date, y=MHHW, group=City)) +
 
 ```
 
-This coefficient gives us the average increase in high tide levels each day (OR IS IT MONTH?), across all six cities, for this ten year time frame (i.e. the units of the coefficient are in m per day).
+This coefficient gives us the average increase in high tide levels each day, across all six cities, for this ten year time frame (i.e. the units of the coefficient are in m per day).
 
-8c. Using your estimated coefficient, estimate the mean increase in sea-level over the 10 year time frame from 2011-2020.
+# 8c. Using your estimated coefficient, estimate the mean increase in sea-level over the 10 year time frame from 2011-2020.
 
 ```{r}
 # (.00002732*365*10) = 
@@ -189,6 +180,7 @@ diff(p)
 
 
 Upload your .Rmd file and you knitted file with the answers and plots to Canvas
+
 ##STRETCH GOAL
 
 If you are looking for a challenge, have a go downloading the original csv files directly from the NOAA API. Details on the API are here: <https://api.tidesandcurrents.noaa.gov/api/prod/>
