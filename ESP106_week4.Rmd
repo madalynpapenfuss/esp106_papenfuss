@@ -1,8 +1,9 @@
 ---
 title: "ESP106-Lab4"
-author: "Fran M"
+author: "Fran M" 
 date: "January 29, 2023"
 output: html_document
+Madalyn Papenfuss
 ---
 
 ## Lab 4
