@@ -26,7 +26,7 @@ Before you start: add this file to your github repository, and commit your chang
 
 ```{r}
 getwd
-setwd("C:/Users/maddi/OneDrive/Desktop/R files/week four")
+setwd("C:/Users/maddi/OneDrive/Desktop/R files/github/esp106_papenfuss")
 list.files(full.names=TRUE)
 ```
 
@@ -180,17 +180,4 @@ diff(p)
 ```
 
 
-Upload your .Rmd file and you knitted file with the answers and plots to Canvas
-
-##STRETCH GOAL
-
-If you are looking for a challenge, have a go downloading the original csv files directly from the NOAA API. Details on the API are here: <https://api.tidesandcurrents.noaa.gov/api/prod/>
-
-You will want to paste together a URL describing the data you want from the API, then use download.file() to download the data from that URL into a directory on your computer.
-
-The URL you want will have the following form, except you will loop through to replace *GAUGEID* with each of the six tide gauge ID numbers: 
-
-paste0("https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20110101&end_date=20201231&station=",*GAUGEID*,"&product=monthly_mean&datum=MHHW&units=metric&time_zone=lst&format=csv")
-
-See if you can make sense of this URL given the options listed at the website describing access to the API
-
+Upload your .Rmd file and your knitted file with the answers and plots to Canvas
