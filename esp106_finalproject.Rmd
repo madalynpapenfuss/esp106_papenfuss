@@ -1,44 +1,28 @@
 ---
 title: "ESP106_Final-Project"
 author: "Madalyn Papenfuss"
-date: "2023-03-06"
+date: "2023-03-21"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F)
-# packages <- do if thing
-# tidyverse
-# terra
-# ggplot2
-# dplyr
-# tidyr
+```{r}
+knitr::opts_chunk$set
+
+list.of.packages <- c("tidyverse", "terra", "ggplot2", "dplyr", "tidyr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 ```
-
-
-url <- download.file
-base name url (if does not exist and unzip)
-
 ## R Markdown
 
-```{r, include=FALSE}
-# URL <- "https://gis.data.ca.gov/datasets/89f0a301dcdd44f5900c4eb501af0a7f_0/about"
-```
-
-#SPECIFIC LAND USE DATA FOR SJ USING SHP
-```{r delta map}
-#ASK HOW TO DOWNLOAD FROM SITE (ASK HOW)
-# https://gis.data.ca.gov/datasets/89f0a301dcdd44f5900c4eb501af0a7f_0/about
-library(terra)
-setwd("C:/Users/maddi/OneDrive/Desktop/R files/final project")
-sanjoaquincroplandvect <- vect("C:/Users/maddi/OneDrive/Desktop/R files/final project/i15_LandUse_SanJoaquin2017/i15_LandUse_SanJoaquin2017.shp")
+Specific Land Use Data For San Joaquin County
+```{r}
+sanjoaquincroplandvect <- read.csv("https://raw.githubusercontent.com/madalynpapenfuss/esp106_papenfuss/main/i15_LandUse_SanJoaquin2017.csv")
 #getting plants and # of acres & sum all acres for single crop
-sjclv <- sanjoaquincroplandvect[[c("CROPTYP1","ACRES")]]
+sjclv <- sanjoaquincroplandvect[c("CROPTYP1","ACRES")]
 sjclv<- aggregate(.~CROPTYP1,data=sjclv,sum)
 #order dataset, top 15 ag land use (acres)
 sjclv <- sjclv[order(sjclv$ACRES, decreasing = TRUE), ]
 sjclv <- sjclv[1:15,]
-head(sjclv)
 sjclv$landusenames <- c("Native Vegetation","Vineyard", "Grain and Hay", "Almonds", "Walnuts", "Urban", "Corn", "Alfalfa/alfalfa mixtures", "Semi-Ag Misc", "Water Surface","Tomatoes", "Cherries", "Pasture", "Urban Residential", "Paved Areas") 
 #barplot of crop by acre 
 csj <- c("darkgreen", "pink2","#22AA99", "tomato1", "cornflowerblue", "chocolate3", "darkgoldenrod2","wheat2","#FF8800", "darkorchid3", "lavender", "darkseagreen")
@@ -49,43 +33,41 @@ title(xlab = "Acres", main="Landuse in San Joaquin County")
 #axis needs to be closer (ASK HOW)
 ```
 
-#MORE GENERAL LANDUSE TYPES FOR SJ USING CSV
+#MORE GENERAL LANDUSE TYPES FOR SJ
 ```{r}
+
 #make land use type "more general"
-sjcropland <- sanjoaquincroplandvect[[c("CROPTYP1","ACRES")]]
+sjcropland <- sanjoaquincroplandvect[c("CROPTYP1","ACRES")]
 sjcgeneral <- aggregate(.~CROPTYP1,data=sjcropland,sum)
 sjcgeneral$CROPTYP1 <- substr(sjcgeneral$CROPTYP1, 0, 1)
 sjcgeneral <- aggregate(.~CROPTYP1,data=sjcgeneral,sum)
 sjcgeneral <- sjcgeneral[order(sjcgeneral$ACRES, decreasing = TRUE), ]
 sjcgeneral$landusenames <- c("Natural Space", "Deciduous Fruit/Nuts", "Urban", "Vineyards", "Grain and Hay", "Pasture", "Field Crops", "Semi-Ag Farmuse", "Truck Crops","Idle", "Citrus & Subtropical", "Rice")
+sjcgeneral$prop <- (sjcgeneral$ACRES)/ (sum(sjcgeneral$ACRES))
 par(mar=c(5,7,3,2))
 barplot(sjcgeneral$ACRES, names.arg=sjcgeneral$landusenames, horiz = TRUE, las=1,cex.names = 0.75, col=csj, xlab = "Acres", main="General Land Use in San Joaquin County", xlim=c(0,200000))
-
-#proportion of landuse
-sjcgeneral$prop <- (sjcgeneral$ACRES)/ (sum(sjcgeneral$ACRES))
-head(sjcgeneral)
-ggplot(sjcgeneral, aes(x=CROPTYP1, y=prop, fill=CROPTYP1)) + 
-    geom_area(size=1, colour=csj)
 ```
 
 #SJ SPATIAL MAP
-```{r, echo=FALSE}
-#ADD LEGEND
-#only using first letter
-sanjoaquincroplandvect <- vect("C:/Users/maddi/OneDrive/Desktop/R files/final project/i15_LandUse_SanJoaquin2017/i15_LandUse_SanJoaquin2017.shp")
-sanjoaquincroplandvect$CROPTYP1 <- substr(sanjoaquincroplandvect$CROPTYP1, 0, 1)
+```{r}
+setwd("C:/Users/maddi/OneDrive/Desktop/R files/final project")
+library(terra)
+sanjoaquincroplandvect2 <- vect("i15_LandUse_SanJoaquin2017/i15_LandUse_SanJoaquin2017.shp")
+sanjoaquincroplandvect2$CROPTYP1 <- substr(sanjoaquincroplandvect2$CROPTYP1, 0, 1)
 glunames <-c("Natural Space", "Semi-Ag Farmuse", "Urban", "Field Crops", "Truck Crops","Pasture",  "Grain and Hay", "Idle", "Deciduous Fruit/Nuts", "Vineyards", "Rice", "Citrus & Subtropical")
 #creating a df with the letter (from data table) and general land use information (from website)
+usj <- unique(sanjoaquincroplandvect2$CROPTYP1)
 ucsj <- data.frame(CROPTYP1=usj, glnames=glunames)
-sanjoaquincroplandvect <- merge(sanjoaquincroplandvect, ucsj, by = "CROPTYP1")
+sanjoaquincroplandvect2 <- merge(sanjoaquincroplandvect2, ucsj, by = "CROPTYP1")
 #plotting based on names
-plot(sanjoaquincroplandvect, "glnames", col=csj, border = NA)
+plot(sanjoaquincroplandvect2, "glnames", col=csj, border = NA)
 ```
 
-#TYPE OF IRRIGATION PER ACRE
-```{r, echo=FALSE}
+#Irrigation Method PER ACRE
+
+```{r}
 #subset data based on irrigation/not, irrigation method, crop type, and acreage 
-sjirrigation <- sanjoaquincroplandvect[[c("IRR_TYP1PA","IRR_TYP1PB","CROPTYP1", "ACRES")]]
+sjirrigation <- sanjoaquincroplandvect[c("IRR_TYP1PA","IRR_TYP1PB","CROPTYP1", "ACRES")]
 #COLOR FOR EACH IRRIGATION TYPE 
 sjcol <- c("darkgreen", "pink2","#22AA99", "tomato1", "#00b7c7", "chocolate3", "darkgoldenrod2","wheat2","#FF8800", "darkorchid3", "darkseagreen", "#ffee65", "#DD4477",  "#E67300", "lavender", "salmon2")
 sju <- unique(sjirrigation$IRR_TYP1PB)
@@ -93,9 +75,7 @@ sjucol <- data.frame(IRR_TYP1PB=sju, col=sjcol)
 sjirrigation <- merge(sjirrigation, sjucol, by = "IRR_TYP1PB")
 #REMOVING NON-IRRIGATED AREAS ("n") & UNKNOWN VALUES ("U")
 sjirrigation <- sjirrigation[!grepl('n', sjirrigation$IRR_TYP1PA),]
-unique(sjirrigation$IRR_TYP1PB)
 sjirrigation <- sjirrigation[!grepl('U', sjirrigation$IRR_TYP1PB),]
-unique(sjirrigation$IRR_TYP1PB)
 #RENAMING VARIABLES - CROSS REFERENCING ONLINE DATA
 sjirrigation[sjirrigation == "A"] <- "Buried Drip"
 sjirrigation[sjirrigation == "B"] <- "Border Strip"
@@ -112,26 +92,22 @@ sjirrigation[sjirrigation == "S"] <- "Subirrigation"
 sjirrigation[sjirrigation == "T"] <- "Solid Set Sprinkler"
 sjirrigation[sjirrigation == "U"] <- "Irrigated, unknown or not mapped"
 sjirrigation[sjirrigation == "W"] <- "Wild Flooding"
+library(ggplot2)
 ggplot(data = sjirrigation, aes(x = reorder(IRR_TYP1PB, -ACRES), y = ACRES)) + geom_bar(stat="identity", color=sjirrigation$col,fill=sjirrigation$col) + coord_flip() + ggtitle("Irrigation Method per Acre")+ ylab("Acres") + xlab("Irrigation Method") + theme_bw()
 ```
 
-#TOP CROP IRRIGATION PATTERN
-```{r, echo=FALSE}
+#Top Crop Irrigation Methods
+```{r}
 #subset data based on irrigation type and crop type
-sanjoaquincroplandvect <- vect("C:/Users/maddi/OneDrive/Desktop/R files/final project/i15_LandUse_SanJoaquin2017/i15_LandUse_SanJoaquin2017.shp")
-sjcropirrigation <- sanjoaquincroplandvect[[c("IRR_TYP1PA","IRR_TYP1PB","CROPTYP1", "ACRES")]]
+sjcropirrigation <- sanjoaquincroplandvect[c("IRR_TYP1PA","IRR_TYP1PB","CROPTYP1", "ACRES")]
 #getting rid of non irrigated rows
 sjcropirrigation <- sjcropirrigation[!grepl('n', sjcropirrigation$IRR_TYP1PA),]
 #getting rid of "Unknown"
-unique(sjcropirrigation$IRR_TYP1PB)
 sjcropirrigation <- sjcropirrigation[!grepl('U', sjcropirrigation$IRR_TYP1PB),]
-unique(sjcropirrigation$IRR_TYP1PB)
-# sjcropirrigation2$Col <- c("#b30000","#7c1158",  "#4421af", )
-#filter by certain "main" crops - gathered from most acre/crop   NEED TO ADD G
+#filter by certain "main" crops - gathered from most acre/crop
 library(dplyr)
 sjj <- filter(sjcropirrigation, CROPTYP1 %in% c("V", "D13", "D12", "F6","P1","T15","D3", "P3", "G"))
-unique(sjj$CROPTYP1)
-#ASK JUDY, RENAME IRRIGATION TYPES <- ASK HOW TO DOWNLOAD FILE W NAMES BC ITS ON WEBSITE 
+#RENAME IRRIGATION TYPES (cross referenced online data)
 sjj[sjj == "A"] <- "Buried Drip"
 sjj[sjj == "B"] <- "Border Strip"
 sjj[sjj == "C"] <- "Center Pivot Sprinkler"
@@ -147,65 +123,14 @@ sjj[sjj == "T"] <- "Solid Set Sprinkler"
 sjj[sjj == "U"] <- "Irrigated, unknown or not mapped"
 sjj[sjj == "W"] <- "Wild Flooding"
 #Distribution of irrigation type per crop
-ggplot(data=sjj, aes(x=CROPTYP1, y=ACRES, fill=IRR_TYP1PB)) + geom_bar(stat="identity") + theme_bw() + ggtitle("Irrigation Method per Crop") + scale_fill_manual(values=c("yellow3", "#b30000", "#7c1158", "#4421af", "#1a58f2", "#DD4477", "#00b7c7", "darkgreen","#0d88e2", "#8be04e", "#b3d4ff", "#9b19f5","#FF9900", "#fdcce5", "blue4", "magenta", "red", "aquamarine")) + scale_x_discrete(labels=c('Almond', 'Walnut', 'Cherry', 'Corn', "Grain/\n Hay", "Alfalfa/ \n mixtures", "Pasture","Tomato", "Vineyard"))
-```
-#rename columns & reorg data
-
-```{r, echo=FALSE}
-url <- "https://cadwr.box.com/s/n6ze2ns8d9gy70ds7wj0d8zcv97i1c9y"
-destfile <- "C:/Users/maddi/OneDrive/Desktop/R files/final project"
-download.file(url, destfile)
-
-https://cadwr.box.com/s/mlkgses8ixza4afesfkjx9py667fgr8n
-URL <- "https://cadwr.box.com/s/n6ze2ns8d9gy70ds7wj0d8zcv97i1c9y"
-zipfile <- file.path(wateruse, basename(URL))
-if (!file.exists(zipfile)) {
-  download.file(URL, zipfile)
-}
-
-file<-"https://cadwr.box.com/s/n6ze2ns8d9gy70ds7wj0d8zcv97i1c9y"
-
-file<- read.csv(file)
-
-head(file)
-
-if(!file.exists("data")){
-  dir.create("data")
-}
-```
-
-https://cadwr.box.com/s/n6ze2ns8d9gy70ds7wj0d8zcv97i1c9y
-URL <- "https://gis.data.ca.gov/datasets/89f0a301dcdd44f5900c4eb501af0a7f_0/about"
-zipfile <- file.path(FILENAME, basename(URL))
-if (!file.exists(zipfile)) {
-  download.file(URL, zipfile)
-}
-
-```{r, echo=FALSE}
-#   Acres of x crop
-# maybe graph with color by graph 
-# change graph type to like sand fill one? idk 
-#HOW TO DOWNLOAD THIS ONE HELP
-wateruse <- read.csv("C:/Users/maddi/OneDrive/Desktop/R files/final project/DELTA_WaterPlanWaterUseData.csv")
-#Water Use for SJ County
-sjwateruse <- subset(wateruse, wateruse$County == "39_San Joaquin")
-
-sjwateruse <- sjwateruse[,4:22]
-head(sjwateruse)
-#wateruse by crop for SJ county
-library(tidyverse)
-sjwateruse %>% 
-  select(-County) %>% 
-pivot_longer(cols = names(.)) %>% 
-ggplot(aes(x = value, y = "", fill = name)) +
-  labs(title = "Water Use by Crop Type") +
-  geom_col(position = "stack") + coord_polar() + scale_fill_manual(values=c("#b30000","#8be04e", "darkgreen", "pink2","#22AA99", "tomato1", "#00b7c7", "chocolate3", "darkgoldenrod3","wheat2","#FF8800", "darkorchid3", "darkseagreen", "#ffee65", "#DD4477",  "#E67300", "lavender", "salmon2")) + theme_void()
+ggplot(data=sjj, aes(x=CROPTYP1, y=ACRES, fill=IRR_TYP1PB)) + geom_bar(stat="identity") + theme_bw() + ggtitle("Irrigation Method per Crop") + scale_fill_manual(values=c("yellow3", "#b30000", "#7c1158", "#4421af", "#1a58f2", "#DD4477", "#00b7c7", "darkgreen","#0d88e2", "#8be04e", "#b3d4ff", "#9b19f5","#FF9900", "#fdcce5", "blue4", "magenta", "red", "aquamarine")) + scale_x_discrete(labels=c('Almond', 'Walnut', 'Cherry', 'Corn', "Grain/\n Hay", "Alfalfa/ \n mixtures", "Pasture","Tomato", "Vineyard")) + xlab("Crop Type")
 ```
 
 
-Applied and etaW
-```{r, echo=FALSE}
-etawwateruse <- read.csv("C:/Users/maddi/OneDrive/Desktop/R files/final project/ETaw_WaterPlanWaterUseData.csv")
+#Applied and etaW
+```{r}
+etawwateruse <- read.csv("https://raw.githubusercontent.com/madalynpapenfuss/esp106_papenfuss/main/ETaw_WaterPlanWaterUseData.csv")
+#isolating necessary data
 sjetawwateruse <- subset(etawwateruse, etawwateruse$County == "39_San Joaquin")
 sjetawwateruse <- sjetawwateruse[,5:24]
 library(tidyr)
@@ -225,21 +150,36 @@ sja <-ggplot(appliedwateruse, aes(x= reorder(crop, -value), y= value, fill=value
 library(gridExtra)
 grid.arrange(sjeta, sja, ncol = 2)
 ```
+
+#Water Use by Crop Type
 ```{r}
-cfwateruse <- read.csv("C:/Users/maddi/OneDrive/Desktop/R files/final project/CF_WaterPlanWaterUseData.csv")
-head(cfwateruse)
+wateruse <- read.csv("https://raw.githubusercontent.com/madalynpapenfuss/esp106_papenfuss/main/DELTA_WaterPlanWaterUseData.csv")
+#Water Use for SJ County
+sjwateruse <- subset(wateruse, wateruse$County == "39_San Joaquin")
+sjwateruse <- sjwateruse[,4:22]
+#wateruse by crop for SJ county
+library(tidyverse)
+sjwateruse %>% 
+  select(-County) %>% 
+pivot_longer(cols = names(.)) %>% 
+ggplot(aes(x = value, y = "", fill = name)) +
+  labs(title = "Water Use by Crop Type") +
+  geom_col(position = "stack") + coord_polar() + scale_fill_manual(values=c("#b30000","#8be04e", "darkgreen", "pink2","#22AA99", "tomato1", "#00b7c7", "chocolate3", "darkgoldenrod3","wheat2","#FF8800", "darkorchid3", "darkseagreen", "#ffee65", "#DD4477",  "#E67300", "lavender", "salmon2")) + theme_void()
+```
+
+#Irrigation Water Efficiency by Crop
+```{r}
+cfwateruse <- read.csv("https://raw.githubusercontent.com/madalynpapenfuss/esp106_papenfuss/main/CF_WaterPlanWaterUseData.csv")
 cfwateruse <- subset(cfwateruse, cfwateruse$County == "39_San Joaquin")
 cfwateruse <- cfwateruse[,5:24]
 #Water Use for SJ County
 cfwateruse <- gather(cfwateruse, crop, value,na.rm = FALSE, convert = FALSE)
-head(cfwateruse)
-
-cfsj <-ggplot(cfwateruse, aes(x= reorder(crop, -value), y= value, fill=value)) +
+ggplot(cfwateruse, aes(x= reorder(crop, -value), y= value, fill=value)) +
   geom_bar(position="dodge",  stat="identity")  + theme_bw() + ggtitle("Irrigation Water Efficiency by Crop")+ ylab("Fraction Consumed") + xlab("Crop Type") + coord_flip(ylim = c(0.7, 1))
-cfsj
-```
 
-```{r, echo=FALSE}
+```
+#applied water - etaw 
+```{r}
 minus <- appliedwateruse$value -  sjetawwateruse$value
 name <- c("Grain", "Rice", "Cotton", "Sugar.Beets", "Corn", "Dry.Beans", "Safflower", "Other.Field.Crops", "Alfalfa", "Pasture", "Tomato.Processing", "Tomato.Fresh", "Cucurbits", "Onions...Garlic", "Potatoes", "Truck.Crops", "Almonds...Pistachios", "Other.Deciduous", "Citrus...Subtropical", "Vineyard")
 marks <- list(minus)
